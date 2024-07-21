@@ -1,0 +1,175 @@
+<style>
+  table {
+    table-layout: fixed;
+    border-collapse: collapse;
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 100;
+    width: "80%",
+  }
+
+  th,
+  td {
+    height: 100px;
+    width: 100px;
+    overflow: hidden;
+    border: 1px solid black;
+    font-size: larger;
+  }
+</style>
+
+<body>
+  <script>
+    "use strict";
+    let arr;
+    let time = 0;
+    let intervalId;
+    let table = null;
+    let nextNumber = 1;
+    let div;
+
+    // size
+    div = document.createElement("div");
+    div.align = "center";
+    document.body.append(div);
+
+    const divSize = document.createElement("div");
+    divSize.innerText = "请输入大小 (1-10): ";
+    divSize.align = "center";
+    divSize.style.display = "inline-block";
+    div.append(divSize);
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.value = 5;
+    input.min = 1;
+    input.max = 10;
+    input.style.display = "inline-block";
+    input.style.fontSize = "30px";
+    input.style.textAlign = "center";
+    div.append(input);
+
+    // type
+    div = document.createElement("div");
+    div.align = "center";
+    document.body.append(div);
+
+    const divType = document.createElement("div");
+    divType.innerText = "请选择数据类型: ";
+    divType.align = "center";
+    divType.style.display = "inline-block";
+    div.append(divType);
+
+    const select = document.createElement("select");
+    let opt = document.createElement("option");
+    opt.value = opt.text = "自然数";
+    select.add(opt);
+    opt = document.createElement("option");
+    opt.value = opt.text = "质数";
+    select.add(opt);
+    opt = document.createElement("option");
+    opt.value = opt.text = "完全平方数";
+    select.add(opt);
+    select.style.display = "inline-block";
+    div.append(select);
+
+    // random
+    div = document.createElement("div");
+    div.align = "center";
+    document.body.append(div);
+
+    const divRandom = document.createElement("div");
+    divRandom.innerText = "请选择是否随机: ";
+    divRandom.align = "center";
+    divRandom.style.display = "inline-block";
+    div.append(divRandom);
+
+    const random = document.createElement("input");
+    random.type = "checkbox";
+    random.style.display = "inline-block";
+    div.append(random);
+
+    //
+    const button = document.createElement("button");
+    button.align = "center";
+    button.innerText = "开始";
+    document.body.append(button);
+
+    const divTime = document.createElement("div");
+    divTime.align = "center";
+    divTime.innerText = displayTime(time);
+    document.body.append(divTime);
+
+    const divNext = document.createElement("div");
+    divNext.align = "center";
+    divNext.innerText = `下一个数: `;
+    document.body.append(divNext);
+
+    button.onclick = function () {
+      if (button.innerText == "开始" || button.innerText == "继续") {
+        if (button.innerText == "开始") {
+          time = 0;
+          // gen table
+          if (table) {
+            document.body.removeChild(table);
+          }
+          table = document.createElement("table");
+          table.align = 'center';
+          document.body.append(table);
+
+          let size = input.value;
+          arr = [];
+          for (let i = 1; i <= size * size; i++) {
+            arr.push(i);
+          }
+          arr.sort(function () { return Math.random() - 0.5 });
+
+          for (let i = 0; i < size; i++) {
+            let row = table.insertRow(i);
+            for (let j = 0; j < size; j++) {
+              let cell = row.insertCell(j);
+              cell.onclick = function (e) {
+                console.log(e.target.innerHTML);
+                if (e.target.innerHTML == nextNumber) {
+                  nextNumber++;
+                  if (nextNumber > size * size) {
+                    nextNumber = 1;
+                    clearInterval(intervalId);
+                    button.innerText = "开始";
+                  }
+                  divNext.innerText = `下一个数: ${nextNumber}`;
+                }
+              };
+              cell.innerText = arr[i * size + j];
+            }
+          }
+        } else if (button.innerText == "继续") {
+          table.style.visibility = "visible";
+        }
+
+        button.innerText = "暂停";
+        intervalId = setInterval(() => {
+          time += 1;
+          divTime.innerText = displayTime(time);
+        }, 1000);
+      } else if (button.innerText == "暂停") {
+        table.style.visibility = "hidden";
+        clearInterval(intervalId);
+        button.innerText = "继续";
+      }
+    }
+
+    function displayTime(time) {
+      let h = Math.floor(time / 3600) % 24;
+      let m = Math.floor(time / 60) % 60;
+      let s = time % 60;
+      return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    }
+
+    function pad(n) {
+      return n.toString().padStart(2, '0');
+    }
+
+  </script>
+</body>
