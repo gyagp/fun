@@ -23,13 +23,14 @@
     margin-right: auto;
   }
 
-#schulteTable td  {
+  #schulteTable td {
     overflow: hidden;
     border: 1px solid black;
-    font-size: 50px;
+    font-size: xx-large;
   }
 
-  #historyTable th, #historyTable td {
+  #historyTable th,
+  #historyTable td {
     overflow: hidden;
     border: 1px solid black;
     font-size: medium;
@@ -72,7 +73,8 @@
   <div class="singleBlock">
     <div>历史数据:</div>
     <table id="historyTable" class="inlineBlock">
-      <th>配置</th><th>时间</th>
+      <th>配置</th>
+      <th>时间</th>
     </table>
   </div>
 </div>
@@ -177,6 +179,10 @@
           cell.onclick = function (e) {
             //console.log(e.target.innerHTML);
             if (e.target.innerHTML == numbers[numbersIndex]) {
+              cell.style.backgroundColor = "lightgreen";
+              setTimeout(() => {
+                cell.style.backgroundColor = "white";
+              }, 100);
               numbersIndex++;
               nextNumberDiv.innerText = numbers[numbersIndex];
               if (numbersIndex == size ** 2) {
