@@ -1,163 +1,207 @@
 <style>
+  .leftDiv,
+  .rightDiv {
+    vertical-align: middle;
+    padding-left: 10%;
+    padding-top: 5%;
+  }
+
+  .inlineBlock {
+    display: inline-block;
+  }
+
+  .singleBlock {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
   table {
     table-layout: fixed;
     border-collapse: collapse;
     text-align: center;
     margin-left: auto;
     margin-right: auto;
-    margin-top: 100;
-    width: "80%",
   }
 
-  th,
-  td {
-    height: 100px;
-    width: 100px;
+#schulteTable td  {
     overflow: hidden;
     border: 1px solid black;
-    font-size: larger;
+    font-size: 50px;
+  }
+
+  #historyTable th, #historyTable td {
+    overflow: hidden;
+    border: 1px solid black;
+    font-size: medium;
   }
 </style>
+
+<div id="leftDiv" class="leftDiv inlineBlock">
+  <fieldset>
+    <legend>配置</legend>
+    <div class="singleBlock">
+      <div class="inlineBlock">大小 (1-10): </div>
+      <input id="sizeInput" type="number" min=1 max=10 value=5 class="inlineBlock"></input>
+    </div>
+    <div class="singleBlock">
+      <div class="inlineBlock">数据类型: </div>
+      <select id="typeSelect" class="inlineBlock">
+        <option value="自然数">自然数</option>
+        <option value="质数">质数</option>
+        <option value="完全平方数">完全平方数</option>
+      </select>
+    </div>
+    <div class="singleBlock">
+      <div class="inlineBlock">随机: </div>
+      <input id="randomInput" type="checkbox" class="inlineBlock"></input>
+    </div>
+  </fieldset>
+
+  <div class="singleBlock">
+    <button id="startButton">开始</button>
+    <button id="pauseButton">暂停</button>
+  </div>
+  <div class="singleBlock">
+    <div class="inlineBlock">时间: </div>
+    <div id="timeDiv" class="inlineBlock">00:00:00</div>
+  </div>
+  <div class="singleBlock">
+    <div class="inlineBlock">下一个数: </div>
+    <div id="nextNumberDiv" class="inlineBlock"></div>
+  </div>
+  <div class="singleBlock">
+    <div>历史数据:</div>
+    <table id="historyTable" class="inlineBlock">
+      <th>配置</th><th>时间</th>
+    </table>
+  </div>
+</div>
+
+<div class="rightDiv inlineBlock">
+  <table id="schulteTable"></table>
+</div>
 
 <body>
   <script>
     "use strict";
-    let arr;
+
+    const sizeInput = document.getElementById("sizeInput");
+    const typeSelect = document.getElementById("typeSelect");
+    const randomInput = document.getElementById("randomInput");
+    const startButton = document.getElementById("startButton");
+    const pauseButton = document.getElementById("pauseButton");
+    const timeDiv = document.getElementById("timeDiv");
+    const nextNumberDiv = document.getElementById("nextNumberDiv");
+    const schulteTable = document.getElementById("schulteTable");
+    const historyTable = document.getElementById("historyTable");
+
+    let cells = [];
+    let numbers = [];
+    let numbersIndex = 0;
+    let indexArray;
     let time = 0;
     let intervalId;
-    let table = null;
-    let nextNumber = 1;
-    let div;
+    let size;
 
-    // size
-    div = document.createElement("div");
-    div.align = "center";
-    document.body.append(div);
+    genTable();
+    const leftDiv = document.getElementById("leftDiv");
+    leftDiv.width = screen.width - screen.height;
 
-    const divSize = document.createElement("div");
-    divSize.innerText = "请输入大小 (1-10): ";
-    divSize.align = "center";
-    divSize.style.display = "inline-block";
-    div.append(divSize);
+    sizeInput.onchange = function () {
+      genTable();
+    }
 
-    const input = document.createElement("input");
-    input.type = "number";
-    input.value = 5;
-    input.min = 1;
-    input.max = 10;
-    input.style.display = "inline-block";
-    input.style.fontSize = "30px";
-    input.style.textAlign = "center";
-    div.append(input);
-
-    // type
-    div = document.createElement("div");
-    div.align = "center";
-    document.body.append(div);
-
-    const divType = document.createElement("div");
-    divType.innerText = "请选择数据类型: ";
-    divType.align = "center";
-    divType.style.display = "inline-block";
-    div.append(divType);
-
-    const select = document.createElement("select");
-    let opt = document.createElement("option");
-    opt.value = opt.text = "自然数";
-    select.add(opt);
-    opt = document.createElement("option");
-    opt.value = opt.text = "质数";
-    select.add(opt);
-    opt = document.createElement("option");
-    opt.value = opt.text = "完全平方数";
-    select.add(opt);
-    select.style.display = "inline-block";
-    div.append(select);
-
-    // random
-    div = document.createElement("div");
-    div.align = "center";
-    document.body.append(div);
-
-    const divRandom = document.createElement("div");
-    divRandom.innerText = "请选择是否随机: ";
-    divRandom.align = "center";
-    divRandom.style.display = "inline-block";
-    div.append(divRandom);
-
-    const random = document.createElement("input");
-    random.type = "checkbox";
-    random.style.display = "inline-block";
-    div.append(random);
-
-    //
-    const button = document.createElement("button");
-    button.align = "center";
-    button.innerText = "开始";
-    document.body.append(button);
-
-    const divTime = document.createElement("div");
-    divTime.align = "center";
-    divTime.innerText = displayTime(time);
-    document.body.append(divTime);
-
-    const divNext = document.createElement("div");
-    divNext.align = "center";
-    divNext.innerText = `下一个数: `;
-    document.body.append(divNext);
-
-    button.onclick = function () {
-      if (button.innerText == "开始" || button.innerText == "继续") {
-        if (button.innerText == "开始") {
-          time = 0;
-          // gen table
-          if (table) {
-            document.body.removeChild(table);
-          }
-          table = document.createElement("table");
-          table.align = 'center';
-          document.body.append(table);
-
-          let size = input.value;
-          arr = [];
-          for (let i = 1; i <= size * size; i++) {
-            arr.push(i);
-          }
-          arr.sort(function () { return Math.random() - 0.5 });
-
-          for (let i = 0; i < size; i++) {
-            let row = table.insertRow(i);
-            for (let j = 0; j < size; j++) {
-              let cell = row.insertCell(j);
-              cell.onclick = function (e) {
-                console.log(e.target.innerHTML);
-                if (e.target.innerHTML == nextNumber) {
-                  nextNumber++;
-                  if (nextNumber > size * size) {
-                    nextNumber = 1;
-                    clearInterval(intervalId);
-                    button.innerText = "开始";
-                  }
-                  divNext.innerText = `下一个数: ${nextNumber}`;
-                }
-              };
-              cell.innerText = arr[i * size + j];
+    startButton.onclick = function () {
+      if (startButton.innerText === "开始") {
+        // gen numbers
+        if (typeSelect.value === "自然数") {
+          numbers = [...Array(size ** 2).keys()].map(x => x + 1);
+        } else if (typeSelect.value === "质数") {
+          numbers = [];
+          let i = 2;
+          while (numbers.length < size ** 2) {
+            if (isPrime(i)) {
+              numbers.push(i);
             }
+            i++;
           }
-        } else if (button.innerText == "继续") {
-          table.style.visibility = "visible";
+        } else if (typeSelect.value === "完全平方数") {
+          numbers = [...Array(size ** 2).keys()].map(x => (x + 1) ** 2);
         }
 
-        button.innerText = "暂停";
+        indexArray = [...Array(size ** 2).keys()];
+        let force = true;
+        shuffle(force);
+
+        startButton.innerText = "停止";
+        sizeInput.disabled = true;
+        typeSelect.disabled = true;
+        randomInput.disabled = true;
+        nextNumberDiv.innerText = numbers[numbersIndex];
+
+        time = 0;
         intervalId = setInterval(() => {
           time += 1;
-          divTime.innerText = displayTime(time);
+          timeDiv.innerText = displayTime(time);
         }, 1000);
-      } else if (button.innerText == "暂停") {
-        table.style.visibility = "hidden";
-        clearInterval(intervalId);
-        button.innerText = "继续";
+      } else { // startButton.innerText === "停止"
+        stop();
       }
+    }
+
+    pauseButton.onclick = function () {
+      if (pauseButton.innerText == "暂停") {
+        schulteTable.style.visibility = "hidden";
+        clearInterval(intervalId);
+        pauseButton.innerText = "继续";
+      } else { // pausebutton.innerText == "继续"
+        schulteTable.style.visibility = "visible";
+        intervalId = setInterval(() => {
+          time += 1;
+          timeDiv.innerText = displayTime(time);
+        }, 1000);
+        pauseButton.innerText = "暂停";
+      }
+    }
+
+    function genTable() {
+      size = parseInt(sizeInput.value, 10);
+      schulteTable.innerHTML = "";
+      cells = [];
+      for (let i = 0; i < size; i++) {
+        let row = schulteTable.insertRow(i);
+        for (let j = 0; j < size; j++) {
+          let cell = row.insertCell(j);
+          cells.push(cell);
+          cell.width = cell.height = screen.height * 0.6 / size;
+          cell.onclick = function (e) {
+            //console.log(e.target.innerHTML);
+            if (e.target.innerHTML == numbers[numbersIndex]) {
+              numbersIndex++;
+              nextNumberDiv.innerText = numbers[numbersIndex];
+              if (numbersIndex == size ** 2) {
+                recordHistory();
+                stop();
+              } else {
+                shuffle();
+              }
+            }
+          };
+        }
+      }
+    }
+
+    function stop() {
+      clearInterval(intervalId);
+      numbersIndex = 0;
+      startButton.disabled = false;
+      startButton.innerText = "开始";
+      pauseButton.disabled = false;
+      pauseButton.innerText = "暂停";
+      sizeInput.disabled = false;
+      typeSelect.disabled = false;
+      randomInput.disabled = false;
+      nextNumberDiv.innerText = "";
     }
 
     function displayTime(time) {
@@ -167,8 +211,39 @@
       return `${pad(h)}:${pad(m)}:${pad(s)}`;
     }
 
+    function shuffle(force = false) {
+      if (!randomInput.checked && !force) {
+        return
+      }
+      indexArray.sort(() => Math.random() - 0.5);
+      for (let i = 0; i < size ** 2; i++) {
+        cells[i].innerText = numbers[indexArray[i]];
+      }
+    }
+
+    function isPrime(n) {
+      if (n < 2) {
+        return false;
+      }
+
+      for (let i = 2; i <= Math.sqrt(n); i++) {
+        if (n % i === 0) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     function pad(n) {
       return n.toString().padStart(2, '0');
+    }
+
+    function recordHistory() {
+      let row = historyTable.insertRow(1);
+      let cell1 = row.insertCell(0);
+      let cell2 = row.insertCell(1);
+      cell1.innerText = `${size}x${size} ${typeSelect.value} ${randomInput.checked ? "随机" : "固定"}`;
+      cell2.innerText = displayTime(time);
     }
 
   </script>
