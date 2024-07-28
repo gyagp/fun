@@ -102,7 +102,7 @@
     let numbersIndex = 0;
     let indexArray;
     let time = 0;
-    let intervalId;
+    let intervalId = 0;
     let size;
 
     genTable();
@@ -136,16 +136,16 @@
         shuffle(force);
 
         startButton.innerText = "停止";
+        pauseButton.disabled = false;
+        pauseButton.innerText = "暂停";
+        schulteTable.style.visibility = "visible";
         sizeInput.disabled = true;
         typeSelect.disabled = true;
         randomInput.disabled = true;
         nextNumberDiv.innerText = numbers[numbersIndex];
 
         time = 0;
-        intervalId = setInterval(() => {
-          time += 1;
-          timeDiv.innerText = displayTime(time);
-        }, 1000);
+        startInterval();
       } else { // startButton.innerText === "停止"
         stop();
       }
@@ -154,14 +154,11 @@
     pauseButton.onclick = function () {
       if (pauseButton.innerText == "暂停") {
         schulteTable.style.visibility = "hidden";
-        clearInterval(intervalId);
+        stopInterval(intervalId);
         pauseButton.innerText = "继续";
       } else { // pausebutton.innerText == "继续"
+        startInterval();
         schulteTable.style.visibility = "visible";
-        intervalId = setInterval(() => {
-          time += 1;
-          timeDiv.innerText = displayTime(time);
-        }, 1000);
         pauseButton.innerText = "暂停";
       }
     }
@@ -198,16 +195,40 @@
     }
 
     function stop() {
-      clearInterval(intervalId);
+      stopInterval(intervalId);
       numbersIndex = 0;
+      nextNumberDiv.innerText = "";
+
       startButton.disabled = false;
       startButton.innerText = "开始";
+
       pauseButton.disabled = false;
       pauseButton.innerText = "暂停";
+
+      schulteTable.style.visibility = "visible";
+      for (let i = 0; i < size ** 2; i++) {
+        cells[i].innerText = "";
+      }
+
       sizeInput.disabled = false;
       typeSelect.disabled = false;
       randomInput.disabled = false;
-      nextNumberDiv.innerText = "";
+    }
+
+    function startInterval() {
+      if (intervalId !== 0) {
+        return;
+      }
+
+      intervalId = setInterval(() => {
+        time += 1;
+        timeDiv.innerText = displayTime(time);
+      }, 1000);
+    }
+
+    function stopInterval() {
+      clearInterval(intervalId);
+      intervalId = 0;
     }
 
     function displayTime(time) {
